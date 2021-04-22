@@ -1,11 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:swapi/models/httpService.dart';
+import 'package:swapi/models/characterList.dart';
 import 'package:http/http.dart' as http;
+import 'package:swapi/models/selectedCharacter.dart';
+import 'package:swapi/views/character.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MaterialApp(
+   title: 'Star wars Characters',
+   home: MyApp(),
+ ));
 }
 
 class MyApp extends StatefulWidget {
@@ -15,12 +20,15 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int _pagina = 1;
+  bool _favoritos = true;
   Future<List<ListaDePersonajes>> _listadoDeNombres;
+  List favoriteCharacters = [];
 
   Future<List<ListaDePersonajes>> _getNombres(int pagina) async {
     final respuesta = await http.get(Uri.parse("https://swapi.dev/api/people/?page=" + pagina.toString()));
 
     List<ListaDePersonajes> nombres = [];
+    List<ListaDePersonajes> nombresFiltrados = [];
 
     if (respuesta.statusCode == 200) {
       String body = utf8.decode(respuesta.bodyBytes);
@@ -29,8 +37,9 @@ class _MyAppState extends State<MyApp> {
       for (var item in jsonData["results"]) {
         nombres.add(ListaDePersonajes(item["name"],item["gender"],item["birth_year"]));
       }
+      
       return nombres;
-      //print(jsonData["results"][0]);
+      
     } else {
       throw Exception("Dio error nro: " + respuesta.statusCode.toString()); //ni idea si se puede pasar a string
     }
@@ -46,6 +55,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: new ThemeData(scaffoldBackgroundColor: const Color(0xFF151026)),
       home: Scaffold 
       (
         appBar: AppBar(title: Text("Star wars Characters"), backgroundColor: Color(0xFF151026),),
@@ -73,7 +83,7 @@ class _MyAppState extends State<MyApp> {
               visible: _pagina > 1,
               child: 
                 FloatingActionButton(
-                  backgroundColor: Color(0xFF151026),
+                  backgroundColor: Colors.amber[600],
                   onPressed: () {
                     setState(() {
                       _pagina--;
@@ -83,8 +93,9 @@ class _MyAppState extends State<MyApp> {
                   child: const Icon(Icons.arrow_back)
               ),
             ),
+            SizedBox(width: 10),
             FloatingActionButton(
-              backgroundColor: Color(0xFF151026),
+              backgroundColor: Colors.amber[600],
               onPressed: () {
                 //que crack que soy
                 setState(() {
@@ -94,12 +105,13 @@ class _MyAppState extends State<MyApp> {
               },
               child: const Icon(Icons.arrow_forward)
             ),
+            SizedBox(width: 10),
             FloatingActionButton(
-              backgroundColor: Color(0xFF151026),
+              backgroundColor: Colors.amber[600],
               onPressed: () {
                 setState(() {
-                _pagina++;
-                _listadoDeNombres = _getNombres(_pagina);
+                _favoritos = !_favoritos;
+                _listadoDeNombres = _getNombres(1);
               });
             },
             child: const Icon(Icons.star)
@@ -111,16 +123,30 @@ class _MyAppState extends State<MyApp> {
   }
   List<Widget> _listPersonajes(data) {
     List<Widget> personajes = [];
-
+    
     for(var personaje in data) {
       personajes.add(
-          Card(
-            child: Column(
-              children: [
-            Text(personaje.name),
-            Text(personaje.gender + "|" + "Birth date: " +  personaje.birth_year)
-            ]
-          )
+          GestureDetector(
+            onTap: () {
+              SelectedCharacter.name = personaje.name;
+              SelectedCharacter.gender = personaje.gender;
+              SelectedCharacter.birth_year = personaje.birth_year;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Character()),
+              );
+            },
+            child: Card(
+              color: Color(0xFF151026),
+              child: Column(
+                children: [
+                  SizedBox(height:10),
+                  Text(personaje.name, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber[600])),
+                  Text("Gender: " + personaje.gender, style: TextStyle(color: Colors.amber[600])),
+                  Text(personaje.birth_year, style: TextStyle(color: Colors.amber[600]))
+              ]
+            )
+            ),
           ),
       );
     }
