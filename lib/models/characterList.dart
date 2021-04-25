@@ -1,15 +1,22 @@
-import 'package:http/http.dart';
-
 class ListaDePersonajes {
   String url = "https://swapi.dev/api/people/1/";
   String name;
   String gender;
-  String birth_year;
+  String height;
+  String mass;
+  String hairColor;
+  String eyeColor;
 
-  ListaDePersonajes(name,gender,birth_year) {
+  String birthYear;
+
+  ListaDePersonajes(name,gender,birthYear,height,mass,hairColor,eyeColor) {
     this.name = name;
     this.gender = gender;
-    this.birth_year = birth_year;
+    this.birthYear = birthYear;
+    this.height = height;
+    this.mass = mass;
+    this.hairColor = hairColor;
+    this.eyeColor = eyeColor;
   }
   
 }
